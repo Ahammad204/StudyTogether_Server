@@ -168,7 +168,7 @@ async function run() {
         });
 
 
-        //Delete a Pet 
+        //Delete a Assignment
         app.delete('/assignment/:id', async (req, res) => {
 
             const id = req.params.id;
@@ -178,7 +178,7 @@ async function run() {
 
         })
 
-        //Update a pet
+        //Update a Assignment
         app.patch('/assignment/:id', verifyToken, async (req, res) => {
 
             const item = req.body;
@@ -188,13 +188,12 @@ async function run() {
 
                 $set: {
 
-                    petName: item.petName,
-                    category: item.category,
-                    petAge: item.petAge,
-                    petLocation: item.petLocation,
-                    shortDescription: item.shortDescription,
+                    assignmentTitle: item.assignmentTitle,
+                    difficulty: item.difficulty,
+                    assignmentNumber: item.assignmentNumber,
                     longDescription: item.longDescription,
-                    image: item.image,
+                    assignmentLastDate: item.assignmentLastDate,
+                    assignmentImage: item.assignmentImage,
 
                 }
 
@@ -205,6 +204,18 @@ async function run() {
             res.send(result)
 
         })
+
+
+        // Get all Assignment Data by Date
+        app.get('/allAssignment', async (req, res) => {
+            try {
+                const result = await assignmentCollection.find().toArray();
+                res.send(result);
+            } catch (error) {
+                console.error(error);
+                res.status(500).send('Internal Server Error');
+            }
+        });
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
