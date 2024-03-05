@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const app = express();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
 
 
@@ -133,12 +133,21 @@ async function run() {
 
         })
 
+        //Get A Assignment
+        app.get('/assignment/:id', async (req, res) => {
 
-        // Get donation Data by Date in Descending Order
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await assignmentCollection.findOne(query)
+            res.send(result)
+
+        })
+
+        // Get assignment Data by Date in Descending Order
         app.get('/assignment', async (req, res) => {
             try {
                 const userEmail = req.query.email;
-                const result = await assignmentCollection.find({ ownerEmail: userEmail }).sort({ assignmentLastDate: -1 }).toArray();
+                const result = await petCollection.find({ email: userEmail }).sort({ date: -1 }).toArray();
                 res.send(result);
             } catch (error) {
                 console.error(error);
@@ -146,21 +155,21 @@ async function run() {
             }
         });
 
-        // Get all Pet Data by Date in Descending Order
-        // app.get('/assignment',verifyToken, async (req, res) => {
-        //     try {
-
-        //         const result = await assignmentCollection.find().sort({ date: -1 }).toArray();
-        //         res.send(result);
-        //     } catch (error) {
-        //         console.error(error);
-        //         res.status(500).send('Internal Server Error');
-        //     }
-        // });
+        // Get all Assignment Data by Date in Descending Order
+        app.get('/assignmentAl', verifyToken, async (req, res) => {
+            try {
+                const userEmail = req.query.email;
+                const result = await assignmentCollection.find({ ownerEmail: userEmail }).toArray();
+                res.send(result);
+            } catch (error) {
+                console.error(error);
+                res.status(500).send('Internal Server Error');
+            }
+        });
 
 
         //Delete a Pet 
-        app.delete('/assignment/:id',verifyToken,  async (req, res) => {
+        app.delete('/assignment/:id', async (req, res) => {
 
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
