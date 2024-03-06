@@ -227,6 +227,18 @@ async function run() {
 
         })
 
+        // Get all Submitted Assignment Data by Owner Email
+        app.get('/submitAssignment', verifyToken, async (req, res) => {
+            try {
+                const userEmail = req.query.email;
+                const result = await submitAssignmentCollection.find({ email: userEmail }).toArray();
+                res.send(result);
+            } catch (error) {
+                console.error(error);
+                res.status(500).send('Internal Server Error');
+            }
+        });
+
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
