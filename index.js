@@ -58,6 +58,7 @@ async function run() {
 
         const assignmentCollection = client.db('assignmentedDB').collection('assignmented');
         const usersCollection = client.db('usersDB').collection('users');
+        const submitAssignmentCollection = client.db('submitDB').collection('submit');
 
         //Own MiddleWare
         //Verify Token
@@ -216,6 +217,15 @@ async function run() {
                 res.status(500).send('Internal Server Error');
             }
         });
+
+        //Post Submit Assignment data
+        app.post('/submitAssignment', async (req, res) => {
+
+            const item = req.body;
+            const result = await submitAssignmentCollection.insertOne(item);
+            res.send(result)
+
+        })
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
