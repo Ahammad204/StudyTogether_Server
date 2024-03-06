@@ -239,6 +239,27 @@ async function run() {
             }
         });
 
+        //Get A Submitted Assignment
+        app.get('/submitAssignment/:id', async (req, res) => {
+
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await submitAssignmentCollection.findOne(query)
+            res.send(result)
+
+        })
+
+        //Delete a SubmittedAssignment
+        app.delete('/submitAssignment/:id', async (req, res) => {
+
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await submitAssignmentCollection.deleteOne(query);
+            res.send(result);
+
+        })
+
+
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
