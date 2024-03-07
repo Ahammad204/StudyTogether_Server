@@ -13,7 +13,8 @@ app.use(cors({
 
     origin: [
 
-        'http://localhost:5173'
+        // 'http://localhost:5173'
+        'https://studytogether204.web.app'
 
     ],
     credentials: true
