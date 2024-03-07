@@ -227,7 +227,7 @@ async function run() {
 
         })
 
-        // Get all Submitted Assignment Data by Owner Email
+        // Get all Submitted Assignment Data by User Email
         app.get('/submitAssignment', verifyToken, async (req, res) => {
             try {
                 const userEmail = req.query.email;
@@ -256,6 +256,77 @@ async function run() {
             const query = { _id: new ObjectId(id) }
             const result = await submitAssignmentCollection.deleteOne(query);
             res.send(result);
+
+        })
+
+        // Get all Submitted Assignment Data by User Email
+        app.get('/markAssignment', verifyToken, async (req, res) => {
+            try {
+                const userEmail = req.query.email;
+                const result = await submitAssignmentCollection.find({ ownerEmail: userEmail }).toArray();
+                res.send(result);
+            } catch (error) {
+                console.error(error);
+                res.status(500).send('Internal Server Error');
+            }
+        });
+
+        //Make assignment complete
+        app.patch('/mark/user/:id', verifyToken, async (req, res) => {
+            try {
+                const id = req.params.id;
+                const filter = { _id: new ObjectId(id) };
+
+                // Fetch the current document to check the current status
+                const currentDoc = await submitAssignmentCollection.findOne(filter);
+
+                if (!currentDoc) {
+                    return res.status(404).json({ message: "Assignment not found" });
+                }
+
+                // Determine the new status based on the current status
+                const newStatus = currentDoc.status === "pending" ? "Complete" : "pending";
+
+                const updatedDoc = {
+                    $set: {
+                        status: newStatus
+                    }
+                };
+
+                const result = await submitAssignmentCollection.updateOne(filter, updatedDoc);
+
+                res.send(result)
+
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ message: "Internal Server Error" });
+            }
+        });
+
+        //Update Book data
+
+        app.put('/mark/user/:id',  async (req, res) => {
+
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const options = { upsert: true };
+            const updatedMark = req.body;
+            const mark = {
+
+                $set: {
+
+
+                   
+                    feedback: updatedMark.feedback,
+                    marks: updatedMark.marks,
+
+
+                }
+
+            }
+
+            const result = await submitAssignmentCollection.updateOne(filter, mark, options)
+            res.send(result)
 
         })
 
