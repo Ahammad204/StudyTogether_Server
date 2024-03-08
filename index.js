@@ -12,10 +12,7 @@ const jwt = require('jsonwebtoken');
 app.use(cors({
 
     origin: [
-
-        // 'http://localhost:5173'
         'https://studytogether204.web.app'
-
     ],
     credentials: true
 
@@ -54,7 +51,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        // await client.connect();
+        await client.connect();
         // Send a ping to confirm a successful connection
 
         const assignmentCollection = client.db('assignmentedDB').collection('assignmented');
@@ -113,9 +110,13 @@ async function run() {
         app.post('/assignment', async (req, res) => {
 
             const item = req.body;
-            const result = await assignmentCollection.insertOne(item);
-            res.send(result)
-
+            try {
+                const result = await assignmentCollection.insertOne(item);
+                res.send(result);
+            } catch (error) {
+                console.error(error);
+                res.status(500).send('Internal Server Error');
+            }
         })
 
         //Send A user data
@@ -123,16 +124,17 @@ async function run() {
 
             const user = req.body;
             const query = { email: user.email }
-            const existingUser = await usersCollection.findOne(query)
-            if (existingUser) {
-
-                return res.send({ message: 'User already Exists', insertedId: null })
-
+            try {
+                const existingUser = await usersCollection.findOne(query)
+                if (existingUser) {
+                    return res.send({ message: 'User already Exists', insertedId: null })
+                }
+                const result = await usersCollection.insertOne(user);
+                res.send(result);
+            } catch (error) {
+                console.error(error);
+                res.status(500).send('Internal Server Error');
             }
-
-            const result = await usersCollection.insertOne(user);
-            res.send(result)
-
         })
 
         //Get A Assignment
@@ -140,16 +142,20 @@ async function run() {
 
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
-            const result = await assignmentCollection.findOne(query)
-            res.send(result)
-
+            try {
+                const result = await assignmentCollection.findOne(query)
+                res.send(result);
+            } catch (error) {
+                console.error(error);
+                res.status(500).send('Internal Server Error');
+            }
         })
 
         // Get assignment Data by Date in Descending Order
         app.get('/assignment', async (req, res) => {
             try {
                 const userEmail = req.query.email;
-                const result = await petCollection.find({ email: userEmail }).sort({ date: -1 }).toArray();
+                const result = await assignmentCollection.find({ email: userEmail }).sort({ date: -1 }).toArray();
                 res.send(result);
             } catch (error) {
                 console.error(error);
@@ -175,9 +181,13 @@ async function run() {
 
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
-            const result = await assignmentCollection.deleteOne(query);
-            res.send(result);
-
+            try {
+                const result = await assignmentCollection.deleteOne(query);
+                res.send(result);
+            } catch (error) {
+                console.error(error);
+                res.status(500).send('Internal Server Error');
+            }
         })
 
         //Update a Assignment
@@ -187,24 +197,22 @@ async function run() {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
             const updatedDoc = {
-
                 $set: {
-
                     assignmentTitle: item.assignmentTitle,
                     difficulty: item.difficulty,
                     assignmentNumber: item.assignmentNumber,
                     longDescription: item.longDescription,
                     assignmentLastDate: item.assignmentLastDate,
                     assignmentImage: item.assignmentImage,
-
                 }
-
-
             }
-
-            const result = await assignmentCollection.updateOne(filter, updatedDoc)
-            res.send(result)
-
+            try {
+                const result = await assignmentCollection.updateOne(filter, updatedDoc);
+                res.send(result);
+            } catch (error) {
+                console.error(error);
+                res.status(500).send('Internal Server Error');
+            }
         })
 
 
@@ -223,9 +231,13 @@ async function run() {
         app.post('/submitAssignment', async (req, res) => {
 
             const item = req.body;
-            const result = await submitAssignmentCollection.insertOne(item);
-            res.send(result)
-
+            try {
+                const result = await submitAssignmentCollection.insertOne(item);
+                res.send(result);
+            } catch (error) {
+                console.error(error);
+                res.status(500).send('Internal Server Error');
+            }
         })
 
         // Get all Submitted Assignment Data by User Email
@@ -245,9 +257,13 @@ async function run() {
 
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
-            const result = await submitAssignmentCollection.findOne(query)
-            res.send(result)
-
+            try {
+                const result = await submitAssignmentCollection.findOne(query);
+                res.send(result);
+            } catch (error) {
+                console.error(error);
+                res.status(500).send('Internal Server Error');
+            }
         })
 
         //Delete a SubmittedAssignment
@@ -255,9 +271,13 @@ async function run() {
 
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
-            const result = await submitAssignmentCollection.deleteOne(query);
-            res.send(result);
-
+            try {
+                const result = await submitAssignmentCollection.deleteOne(query);
+                res.send(result);
+            } catch (error) {
+                console.error(error);
+                res.status(500).send('Internal Server Error');
+            }
         })
 
         // Get all Submitted Assignment Data by User Email
@@ -277,27 +297,20 @@ async function run() {
             try {
                 const id = req.params.id;
                 const filter = { _id: new ObjectId(id) };
-
                 // Fetch the current document to check the current status
                 const currentDoc = await submitAssignmentCollection.findOne(filter);
-
                 if (!currentDoc) {
                     return res.status(404).json({ message: "Assignment not found" });
                 }
-
                 // Determine the new status based on the current status
                 const newStatus = currentDoc.status === "pending" ? "Complete" : "pending";
-
                 const updatedDoc = {
                     $set: {
                         status: newStatus
                     }
                 };
-
                 const result = await submitAssignmentCollection.updateOne(filter, updatedDoc);
-
-                res.send(result)
-
+                res.send(result);
             } catch (error) {
                 console.error(error);
                 res.status(500).json({ message: "Internal Server Error" });
@@ -306,31 +319,26 @@ async function run() {
 
         //Update Book data
 
-        app.put('/mark/user/:id',  async (req, res) => {
+        app.put('/mark/user/:id', async (req, res) => {
 
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
             const options = { upsert: true };
             const updatedMark = req.body;
             const mark = {
-
                 $set: {
-
-
-                   
                     feedback: updatedMark.feedback,
                     marks: updatedMark.marks,
-
-
                 }
-
             }
-
-            const result = await submitAssignmentCollection.updateOne(filter, mark, options)
-            res.send(result)
-
+            try {
+                const result = await submitAssignmentCollection.updateOne(filter, mark, options)
+                res.send(result);
+            } catch (error) {
+                console.error(error);
+                res.status(500).send('Internal Server Error');
+            }
         })
-
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
